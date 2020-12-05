@@ -1,7 +1,7 @@
 ### Table of Contents
 
 1. [Installation](#installation)
-2. [Usage] (#usage)
+2. [Usage](#usage)
 3. [Project Motivation](#motivation)
 4. [File Descriptions](#files)
 6. [Licensing, Authors, and Acknowledgements](#licensing)
