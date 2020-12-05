@@ -65,15 +65,25 @@ def tokenize(text):
 def build_model():
     '''
     OUTPUT:
-    pipeline - (sklearn pipeline) pipeline of CountVectorizer, TFIDF transformer, and mulit-output classifier
+    cv - (gridSearchCV estimator) estimator based on grid search onpipeline of CountVectorizer, TFIDF transformer,
+    and mulit-output classifier
 
     '''
     pipeline = Pipeline([
         ('vect',CountVectorizer(tokenizer=tokenize)),
         ('tfidf',TfidfTransformer()),
-        ('clf',MultiOutputClassifier(AdaBoostClassifier(learning_rate=0.5,n_estimators=200)))
+        # ('clf',MultiOutputClassifier(AdaBoostClassifier(learning_rate=0.5,n_estimators=200)))
+        ('clf', MultiOutputClassifier(AdaBoostClassifier()))
     ])
-    return pipeline
+
+    parameters = {
+        'clf__estimator__n_estimators': [200, 300],
+        'clf__estimator__learning_rate': [0.25, 0.5]
+    }
+
+    cv = GridSearchCV(pipeline, param_grid=parameters, verbose=2)  # higher the verbose the more information
+
+    return cv
 
 def evaluate_model(model, X_test, Y_test, category_names):
     '''
