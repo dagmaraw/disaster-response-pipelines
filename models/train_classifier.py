@@ -22,6 +22,16 @@ import pickle
 import numpy as np
 
 def load_data(database_filepath):
+    '''
+    INPUT:
+    database_filepath - (string) the filepath to the database with data
+
+    OUTPUT:
+    X - (numpy array) an array of messages
+    Y - (pandas dataframe) a dataframe with classifications corresponding to each message
+    category_names - (numpy array) an array of categories (columns from Y)
+
+    '''
     engine = create_engine('sqlite:///'+database_filepath)
     df = pd.read_sql("SELECT * FROM {}".format(database_filepath[5:-3]),engine)
     X = df.message.values
@@ -32,6 +42,17 @@ def load_data(database_filepath):
 
 
 def tokenize(text):
+    '''
+    INPUT:
+    text - (string) text from the messages
+
+    OUTPUT:
+    tokens - (list) tokenized text
+
+    Notes:
+    Used in CountVectorizer in Pipeline in build_model function
+
+    '''
     stop_words = stopwords.words("english")
     lemmatizer = WordNetLemmatizer()
     
@@ -42,6 +63,11 @@ def tokenize(text):
     return tokens
 
 def build_model():
+    '''
+    OUTPUT:
+    pipeline - (sklearn pipeline) pipeline of CountVectorizer, TFIDF transformer, and mulit-output classifier
+
+    '''
     pipeline = Pipeline([
         ('vect',CountVectorizer(tokenizer=tokenize)),
         ('tfidf',TfidfTransformer()),
@@ -50,23 +76,34 @@ def build_model():
     return pipeline
 
 def evaluate_model(model, X_test, Y_test, category_names):
-    y_pred = model.predict(X_test)
-    
-    #metrics_summary = pd.DataFrame(index = category_names, columns = ['accuracy', 'precision', 'recall', 'f-1_score'])
-    #for i, c in enumerate(category_names): 
-    #    metrics_summary.loc[c,'accuracy'] = accuracy_score(Y_test.iloc[:,i],y_pred[:,i])
-    #    metrics_summary.loc[c,'precision'] = precision_score(Y_test.iloc[:,i],y_pred[:,i])
-    #    metrics_summary.loc[c,'recall'] = recall_score(Y_test.iloc[:,i],y_pred[:,i])
-    #    metrics_summary.loc[c,'f-1_score'] = fbeta_score(Y_test.iloc[:,i],y_pred[:,i],beta=1)
+    '''
+    INPUT:
+    model - (pipeline) model created in build_model
+    X_test - (numpy array) the testing set for x
+    Y_test - (pandas dataframe) the testing set for y
+    category_names - (numpy array) an array of categories (columns of Y)
 
-    #metrics_summary.loc['average'] = metrics_summary.mean(axis=0)
-    #print(metrics_summary)
+    Description:
+    Predicts classification labels for the test set. Prints classification_report for each category,
+    which gives accuracy, recall, f-1 score, and precision, as well as averages
+
+    '''
+    y_pred = model.predict(X_test)
     
     for i, c in enumerate(category_names): 
         print(c)
         print(classification_report(Y_test.iloc[:,i], y_pred[:,i]))
 
 def save_model(model, model_filepath):
+    '''
+    INPUT:
+    model - (pipeline) model created in build_model
+    model_filepath - (string) file path for model
+
+    OUTPUT:
+    recs - (list) a list of recommendations for the user
+
+    '''
     with open(model_filepath, 'wb') as file:
         pickle.dump(model, file)
 
